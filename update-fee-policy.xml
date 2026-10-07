@@ -1,0 +1,32 @@
+<policies>
+    <inbound>
+        <base />
+        <validate-jwt
+            header-name="Authorization"
+            require-scheme="Bearer"
+            failed-validation-httpcode="401"
+            failed-validation-error-message="Unauthorized. Valid administrator access token required.">
+            <openid-config url="https://login.microsoftonline.com/a4c157c5-6383-41b4-8069-884c84c5fc6d/.well-known/openid-configuration" />
+            <audiences>
+                <audience>api://9af8581c-30fc-4651-8273-cce1b22f46c6</audience>
+            </audiences>
+            <issuers>
+                <issuer>https://sts.windows.net/a4c157c5-6383-41b4-8069-884c84c5fc6d/</issuer>
+            </issuers>
+            <required-claims>
+                <claim name="roles" match="all">
+                    <value>FeeAdministrator</value>
+                </claim>
+            </required-claims>
+        </validate-jwt>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>

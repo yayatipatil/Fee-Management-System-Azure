@@ -1,0 +1,23 @@
+<policies>
+    <inbound>
+        <base />
+
+        <set-query-parameter name="code" exists-action="override">
+            <value>{{function-key}}</value>
+        </set-query-parameter>
+
+        <rate-limit calls="10" renewal-period="60" />
+    </inbound>
+
+    <backend>
+        <base />
+    </backend>
+
+    <outbound>
+        <base />
+    </outbound>
+
+    <on-error>
+        <base />
+    </on-error>
+</policies>

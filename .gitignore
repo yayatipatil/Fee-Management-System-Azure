@@ -7,4 +7,4 @@ local.settings.json
 .env
 .env.*
 
-.vscode/
+.vscode/aad_token.txt
