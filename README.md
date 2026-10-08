@@ -43,7 +43,7 @@ Sensitive local configuration files such as `local.settings.json` and generated 
 
 The following diagram shows the overall architecture of the Fee Management System:
 
-![Fee Management System Architecture](docs/architecture.png)
+![Fee Management System Architecture](docs/Architecture.png)
 
 ### Azure Services
 
