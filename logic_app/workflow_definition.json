@@ -1,0 +1,140 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "contentVersion": "1.0.0.0",
+        "triggers": {
+            "Recurrence": {
+                "recurrence": {
+                    "interval": 1,
+                    "frequency": "Day",
+                    "timeZone": "India Standard Time",
+                    "schedule": {
+                        "hours": [
+                            9
+                        ],
+                        "minutes": [
+                            0
+                        ]
+                    }
+                },
+                "evaluatedRecurrence": {
+                    "interval": 1,
+                    "frequency": "Day",
+                    "timeZone": "India Standard Time",
+                    "schedule": {
+                        "hours": [
+                            9
+                        ],
+                        "minutes": [
+                            0
+                        ]
+                    }
+                },
+                "type": "Recurrence"
+            }
+        },
+        "actions": {
+            "Execute_a_SQL_query_(V2)": {
+                "runAfter": {},
+                "type": "ApiConnection",
+                "inputs": {
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['sql']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "body": {
+                        "query": "SELECT\n    StudentID,\n    Name,\n    Course,\n    TotalFee,\n    PaidAmount,\n    DueDate\nFROM Students\nWHERE DueDate < CAST(GETDATE() AS DATE)\n  AND PaidAmount < TotalFee;"
+                    },
+                    "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent('default'))},@{encodeURIComponent(encodeURIComponent('default'))}/query/sql",
+                    "retryPolicy": {
+                        "type": "exponential",
+                        "count": 3,
+                        "interval": "PT10S",
+                        "maximumInterval": "PT1M",
+                        "minimumInterval": "PT10S",
+                        "httpStatusCodes": [
+                            408,
+                            429,
+                            500,
+                            502,
+                            503,
+                            504
+                        ]
+                    }
+                }
+            },
+            "For_each": {
+                "foreach": "@body('Execute_a_SQL_query_(V2)')?['resultsets']?['Table1']",
+                "actions": {
+                    "Send_an_email_(V2)": {
+                        "type": "ApiConnection",
+                        "inputs": {
+                            "host": {
+                                "connection": {
+                                    "name": "@parameters('$connections')['outlook']['connectionId']"
+                                }
+                            },
+                            "method": "post",
+                            "body": {
+                                "To": "<RECIPIENT_EMAIL>",
+                                "Subject": "Fee Payment Reminder - Overdue",
+                                "Body": "<p class=\"editor-paragraph\">Dear Student,<br><br>This is a reminder that your fee payment is overdue.<br><br>Student ID: @{item()?['StudentID']}<br>Student Name: @{item()?['Name']}<br>Course: @{item()?['Course']}<br>Total Fee: @{item()?['TotalFee']}<br>Paid Amount: @{item()?['PaidAmount']}<br>Due Date: @{item()?['DueDate']}<br><br>Please clear the outstanding fee at the earliest.<br><br>Regards,<br>Fee Management System</p>",
+                                "Importance": "Normal"
+                            },
+                            "path": "/v2/Mail",
+                            "retryPolicy": {
+                                "type": "exponential",
+                                "count": 3,
+                                "interval": "PT10S",
+                                "minimumInterval": "PT10S",
+                                "maximumInterval": "PT1M",
+                                "httpStatusCodes": [
+                                    408,
+                                    429,
+                                    500,
+                                    502,
+                                    503,
+                                    504
+                                ]
+                            }
+                        }
+                    }
+                },
+                "runAfter": {
+                    "Execute_a_SQL_query_(V2)": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Foreach"
+            }
+        },
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "type": "Object",
+                "defaultValue": {}
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "type": "Object",
+            "value": {
+                "sql": {
+                    "id": "/subscriptions/e93f25c2-1215-477c-9597-fa79742cc52d/providers/Microsoft.Web/locations/centralindia/managedApis/sql",
+                    "connectionId": "/subscriptions/e93f25c2-1215-477c-9597-fa79742cc52d/resourceGroups/fee-management-rg/providers/Microsoft.Web/connections/sql",
+                    "connectionName": "sql",
+                    "connectionProperties": {}
+                },
+                "outlook": {
+                    "id": "/subscriptions/e93f25c2-1215-477c-9597-fa79742cc52d/providers/Microsoft.Web/locations/centralindia/managedApis/outlook",
+                    "connectionId": "/subscriptions/e93f25c2-1215-477c-9597-fa79742cc52d/resourceGroups/fee-management-rg/providers/Microsoft.Web/connections/outlook",
+                    "connectionName": "outlook",
+                    "connectionProperties": {}
+                }
+            }
+        }
+    }
+}
