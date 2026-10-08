@@ -1,16 +1,20 @@
 <policies>
     <inbound>
         <base />
-
         <set-query-parameter name="code" exists-action="override">
             <value>{{function-key}}</value>
         </set-query-parameter>
-
         <rate-limit calls="10" renewal-period="60" />
     </inbound>
 
     <backend>
-        <base />
+        <retry
+            condition="@(context.Response != null && (context.Response.StatusCode == 500 || context.Response.StatusCode == 502 || context.Response.StatusCode == 503 || context.Response.StatusCode == 504))"
+            count="2"
+            interval="2"
+            first-fast-retry="false">
+            <forward-request buffer-request-body="true" />
+        </retry>
     </backend>
 
     <outbound>
